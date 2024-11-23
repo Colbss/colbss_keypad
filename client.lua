@@ -1,11 +1,9 @@
-
-
 local txReplaceDict, txReplaceName = 'm23_1_prop_m31_keypad_01a', 'prop_ld_keypad'
 local propHash = `m23_1_prop_m31_keypad_01a`
 local keypadHandle = nil
+local keypadCam = nil -- To hold the camera handle
 
 function CreateDUI()
-
     local duiHandle = lib.dui:new({
         url = ("nui://%s/html/ui.html"):format(cache.resource), 
         width = 512, 
@@ -21,7 +19,6 @@ function CreateDUI()
         action = "STATE",
         value = true
     })
-
 end
 
 function CreateKeypad(x, y, z, w)
@@ -33,27 +30,61 @@ function CreateKeypad(x, y, z, w)
             icon = 'fas fa-hashtag',
             label = 'Interact with Keypad',
             onSelect = function(data)
-                print('Interact !')
+                TransitionToKeypadCam(data.entity) -- Transition to keypad camera
             end
         }
     })
     return prop
 end
 
+function TransitionToKeypadCam(prop)
+    -- Get the keypad's coordinates
+    local propCoords = GetEntityCoords(prop)
 
-AddEventHandler('onResourceStart', function (resource)
+    -- Offset the camera to be in front of the keypad
+    local camOffset = GetOffsetFromEntityInWorldCoords(prop, 0.0, -0.2, 0.0)
+
+    -- Create a new camera
+    keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
+    SetCamCoord(keypadCam, camOffset.x, camOffset.y, camOffset.z)
+    PointCamAtCoord(keypadCam, propCoords.x, propCoords.y, propCoords.z)
+    SetCamActive(keypadCam, true)
+    RenderScriptCams(true, true, 1000, true, true)
+
+    -- Listen for escape/back input to reset the camera
+    CreateThread(function()
+        while DoesCamExist(keypadCam) and IsCamActive(keypadCam) do
+            if IsControlJustPressed(0, 177) or IsControlJustPressed(0, 200) then -- Back or Escape
+                ResetToDefaultCam()
+            end
+            Wait(0)
+        end
+    end)
+end
+
+function ResetToDefaultCam()
+    -- Reset the camera to the player's default view
+    if DoesCamExist(keypadCam) then
+        RenderScriptCams(false, true, 1000, true, true)
+        DestroyCam(keypadCam, false)
+        keypadCam = nil
+    end
+end
+
+AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
 
     CreateDUI()
     keypadHandle = CreateKeypad(1525.56, 1825.29, 106.68 , 69.22)
-
 end)
 
-AddEventHandler('onResourceStop', function (resource)
+AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
 
-	-- Remove the replacement when the script ends
-	RemoveReplaceTexture(txReplaceDict, txReplaceName)
+    -- Remove the replacement when the script ends
+    RemoveReplaceTexture(txReplaceDict, txReplaceName)
     DeleteEntity(keypadHandle)
 
+    -- Ensure camera is reset
+    ResetToDefaultCam()
 end)
