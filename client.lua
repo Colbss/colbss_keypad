@@ -2,9 +2,11 @@ local txReplaceDict, txReplaceName = 'm23_1_prop_m31_keypad_01a', 'prop_ld_keypa
 local propHash = `m23_1_prop_m31_keypad_01a`
 local keypadHandle = nil
 local keypadCam = nil -- To hold the camera handle
+local duiHandle = nil
 
 function CreateDUI()
-    local duiHandle = lib.dui:new({
+    if duiHandle ~= nil then return end
+    duiHandle = lib.dui:new({
         url = ("nui://%s/html/ui.html"):format(cache.resource), 
         width = 512, 
         height = 1024,
@@ -43,6 +45,8 @@ function TransitionToKeypadCam(prop)
 
     -- Offset the camera to be in front of the keypad
     local camOffset = GetOffsetFromEntityInWorldCoords(prop, 0.0, -0.2, 0.0)
+
+    SendDuiMouseMove(duiHandle.duiObject, 109, 580)
 
     -- Create a new camera
     keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)

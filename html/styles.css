@@ -12,6 +12,19 @@ body {
     color: white;
 }
 
+.mouse-container {
+    display: none;
+}
+
+.fa-hand-pointer {
+    position: absolute;
+    font-size: 5vh; /* Icon size */
+    color: rgb(132, 132, 132); /* Icon color */
+    pointer-events: none; /* Allows clicks to pass through */
+    transform: translate(-50%, -50%); /* Centers icon on mouse */
+}
+
+
 .content {
     position: absolute;
     top: 0;
