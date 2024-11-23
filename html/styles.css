@@ -1,0 +1,98 @@
+body {
+    display: flex; /* none */
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: red;
+    font-family: "Rubik", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    color: white;
+}
+
+.content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+}
+
+.display {
+    position: absolute;
+    top: 22vh;
+    left: 50vw;
+    transform: translateX(-50%);
+    font-family: 'Seven Segment', sans-serif;
+    font-weight: 400;
+    font-size: 8vh;
+    color: black;
+
+}
+
+.input {
+    position: absolute;
+    bottom: 4.7vh;
+    left: 41.2vw;
+    transform: translateX(-50%);
+
+    width: 52%;
+    height: 43%;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 2px solid rgba(255, 0, 0, 0.3);
+}
+
+.row {
+    display: flex;
+    gap: 10px; /* Space between buttons in the row */
+}
+
+.btn {
+    display: flex;
+    flex-direction: column; /* Stack label and sublabel vertically */
+    justify-content: center;
+    align-items: center;
+    width: 80px; /* Button width */
+    height: 80px; /* Button height */
+    background-color: #333; /* Button background color */
+    color: white; /* Text color */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Button shadow */
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    user-select: none; /* Disable text selection */
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.label {
+    font-size: 1.5rem; /* Main label font size */
+    font-weight: bold;
+    margin-bottom: 5px; /* Space between label and sublabel */
+}
+
+.sublabel {
+    font-size: 0.8rem; /* Sublabel font size */
+    color: #ccc; /* Lighter color for sublabel */
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* Example: 3x3 grid */
+    grid-template-rows: repeat(6, 1fr); /* Adjust as needed */
+    width: 100%;
+    height: 100vh;
+}
+.grid div {
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Optional grid lines */
+}
+
+img {
+    width: 100vw; /* Full width of the viewport */
+    height: 100vh; /* Full height of the viewport */
+    object-fit: cover; /* Ensure the image covers the screen without distortion */
+}
