@@ -4,12 +4,13 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background: red;
+    /* background: red; */
     font-family: "Rubik", serif;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     color: white;
+    overflow: hidden;
 }
 
 .mouse-container {
@@ -19,7 +20,7 @@ body {
 .fa-hand-pointer {
     position: absolute;
     font-size: 5vh; /* Icon size */
-    color: rgb(132, 132, 132); /* Icon color */
+    color: rgb(173, 59, 59); /* Icon color */
     pointer-events: none; /* Allows clicks to pass through */
     transform: translate(-50%, -50%); /* Centers icon on mouse */
 }

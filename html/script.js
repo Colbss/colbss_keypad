@@ -14,10 +14,14 @@ window.addEventListener('message', function (event) {
             break;
         case "MOUSE":
             if (!e.value) {
-                $('.mouse-container').css('display', 'flex');
+                $('.mouse-container').css('display', 'none');
             } else {
                 $('.mouse-container').css('display', 'flex');
             }
+            break;
+        case "DEBUG_MOUSE":
+            console.log('MOUSE X : ' + e.x + ' Y : ' + e.y)
+            break;
         default: break;
     }
 });
