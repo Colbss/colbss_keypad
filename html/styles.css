@@ -1,5 +1,5 @@
 body {
-    display: flex; /* none */
+    display: none; /* none */
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -37,48 +37,45 @@ body {
     bottom: 4.7vh;
     left: 41.2vw;
     transform: translateX(-50%);
-
     width: 52%;
     height: 43%;
-
     display: flex;
     flex-direction: column;
-
-    border: 2px solid rgba(255, 0, 0, 0.3);
+    justify-content: space-between;
+    align-items: center; 
+    /* border: 2px solid rgba(255, 0, 0, 0.3);  */
 }
 
 .row {
     display: flex;
-    gap: 10px; /* Space between buttons in the row */
+    width: 100%; 
+    height: 25%; 
 }
 
 .btn {
     display: flex;
-    flex-direction: column; /* Stack label and sublabel vertically */
+    flex: 1;
+    flex-direction: column; 
     justify-content: center;
     align-items: center;
-    width: 80px; /* Button width */
-    height: 80px; /* Button height */
-    background-color: #333; /* Button background color */
-    color: white; /* Text color */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Button shadow */
+    /* background-color: #a1212147;  */
+    color: white; 
     font-family: Arial, sans-serif;
     cursor: pointer;
-    user-select: none; /* Disable text selection */
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    user-select: none; 
+    margin: 1vh;
 }
 
 .label {
-    font-size: 1.5rem; /* Main label font size */
+    font-size: 3vh;
     font-weight: bold;
-    margin-bottom: 5px; /* Space between label and sublabel */
 }
 
 .sublabel {
-    font-size: 0.8rem; /* Sublabel font size */
-    color: #ccc; /* Lighter color for sublabel */
+    font-size: 2vh; 
+    color: #ccc; 
 }
+
 
 .grid {
     display: grid;
