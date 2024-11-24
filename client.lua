@@ -6,22 +6,23 @@ local duiHandle = nil
 local prevButtonID = -1
 local codeInput = ''
 local passcode = 0
-
-local buttonCamRots = {
-    [1] = vec3(-3.52, 0.0, 98.37),
-    [2] = vec3(-3.46, 0.0, 93.21),
-    [3] = vec3(-3.40, 0.0, 87.85),
-    [4] = vec3(-8.56, 0.0, 98.50),
-    [5] = vec3(-8.56, 0.0, 93.27),
-    [6] = vec3(-8.56, 0.0, 87.92),
-    [7] = vec3(-13.35, 0.0, 98.63),
-    [8] = vec3(-13.48, 0.0, 93.21),
-    [9] = vec3(-13.54, 0.0, 87.86),
-    [10] = vec3(-17.95, 0.0, 98.44), -- Cancel
-    [11] = vec3(-18.20, 0.0, 93.21), -- 0
-    [12] = vec3(-18.20, 0.0, 87.79)  -- #
-}
 local buttonThreshold = 2.5
+
+-- Define button rotations (relative to initial rotation)
+local buttonCamRots = {
+    [1] = vec3(-3.52, 0.0, 8.06),
+    [2] = vec3(-3.52, 0.0, 2.70),
+    [3] = vec3(-3.52, 0.0, -2.58),
+    [4] = vec3(-8.56, 0.0, 8.06),
+    [5] = vec3(-8.56, 0.0, 2.58),
+    [6] = vec3(-8.56, 0.0, -2.64),
+    [7] = vec3(-13.48, 0.0, 8.0),
+    [8] = vec3(-13.51, 0.0, 2.77),
+    [9] = vec3(-13.51, 0.0, -2.7),
+    [10] = vec3(-18.0, 0.0, 8.06), -- Cancel
+    [11] = vec3(-18.1, 0.0, 2.7), -- 0
+    [12] = vec3(-18.2, 0.0, -2.58)  -- #
+}
 
 function CreateDUI()
     if duiHandle ~= nil then return end
@@ -59,8 +60,12 @@ function CreateKeypad(x, y, z, w)
 end
 
 function CalculateInitialCameraRotation(keypadHeading)
-    heading = (keypadHeading + 360.0) % 360.0
+    local heading = (keypadHeading + 360.0) % 360.0
     return vec3(0.0, 0.0, heading)
+end
+
+function NormalizeAngle(angle)
+    return ((angle + 180) % 360) - 180
 end
 
 function TransitionToKeypadCam(prop)
@@ -74,7 +79,6 @@ function TransitionToKeypadCam(prop)
     keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(keypadCam, camOffset.x, camOffset.y, camOffset.z)
     local initialRot = CalculateInitialCameraRotation(GetEntityHeading(prop))
-    print('Set Cam Coords : ' .. tostring(initialRot))
     SetCamRot(keypadCam, initialRot.x, initialRot.y, initialRot.z, 2)
     SetCamActive(keypadCam, true)
     RenderScriptCams(true, true, 1000, true, true)
@@ -94,45 +98,45 @@ function TransitionToKeypadCam(prop)
     local camRot = initialRot
     local btnLookingAt = -1
 
-    local xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
-    print('Start X : ' .. tostring(xMagnitude))
-    local yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
-    print('Start Y : ' .. tostring(yMagnitude))
-
     -- Track the camera's rotation and determine which button is being looked at
     CreateThread(function()
         while DoesCamExist(keypadCam) and IsCamActive(keypadCam) do
-
             DisableAllControlActions(0)
-            local xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
-            local yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
-            -- camRot = vector3(math.clamp(camRot.x - yMagnitude, -23.0, 15.0), camRot.y, math.clamp(camRot.z - xMagnitude, 75.0, 105.0))
-            camRot = vector3(camRot.x - yMagnitude, camRot.y, camRot.z - xMagnitude)
-            print('Update Cam Rot : ' .. tostring(camRot))
+
+            -- Get mouse input
+            xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
+            yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
+            -- camRot = vector3(camRot.x - yMagnitude, camRot.y, camRot.z - xMagnitude)
+            camRot = vector3(
+                math.clamp(camRot.x - yMagnitude, initialRot.x - 22.0, initialRot.x + 15.0), -- Clamp X-axis
+                camRot.y, -- Y-axis remains unchanged
+                math.clamp(camRot.z - xMagnitude, initialRot.z - 15.0, initialRot.z + 15.0)  -- Clamp Z-axis
+            )
             
+            -- Update camera rotation
             SetCamRot(keypadCam, camRot.x, camRot.y, camRot.z, 2)
 
             -- Check which button the camera is looking at
             for buttonId, buttonRot in pairs(buttonCamRots) do
-                if IsCameraLookingAtButton(camRot, buttonRot) then
+                if IsCameraLookingAtButton(camRot, buttonRot, initialRot) then
                     btnLookingAt = buttonId
                 end
             end
 
+            -- Highlight the button or clear highlight
             if btnLookingAt ~= -1 then 
                 HighlightButton(btnLookingAt)
             else
                 HighlightButton(0)
             end
 
-            if IsDisabledControlJustPressed(0, 24)  then -- ESC or Back
-                -- exports.qbx_core:Notify('Click Button ' .. btnLookingAt, 'success')
-                if btnLookingAt > 0 then 
-                    ClickButton(btnLookingAt)
-                end
+            -- Handle click action
+            if IsDisabledControlJustPressed(0, 24) and btnLookingAt > 0 then
+                ClickButton(btnLookingAt)
             end
 
-            if IsDisabledControlJustPressed(0, 200) or IsDisabledControlJustPressed(0, 177) then -- ESC or Back
+            -- Handle exit interaction
+            if IsDisabledControlJustPressed(0, 200) or IsDisabledControlJustPressed(0, 177) then
                 ResetToDefaultCam()
                 break
             end
@@ -143,6 +147,9 @@ function TransitionToKeypadCam(prop)
     end)
 end
 
+function math.clamp(value, min, max)
+    return math.max(min, math.min(value, max))
+end
 
 function ResetToDefaultCam()
     -- Reset the camera to the player's default view
@@ -152,7 +159,6 @@ function ResetToDefaultCam()
         keypadCam = nil
     end
     HighlightButton(0)
-    -- Unfreeze player
     FreezeEntityPosition(cache.ped, false)
     TriggerEvent('zoom:updateBlock', false)
     TriggerEvent('hud:client:ToggleHUD', true)
@@ -167,28 +173,20 @@ function ResetToDefaultCam()
     })
 end
 
--- Converts rotation angles to a direction vector
-function RotationToDirection(rotation)
-    local radZ = math.rad(rotation.z)
-    local radX = math.rad(rotation.x)
-    local cosX = math.cos(radX)
-    return vec3(-math.sin(radZ) * cosX, math.cos(radZ) * cosX, math.sin(radX))
-end
-
--- Check if the camera is looking at a button
-function IsCameraLookingAtButton(camRot, buttonRot)
+function IsCameraLookingAtButton(camRot, buttonRot, initialRot)
+    -- Calculate the relative rotation by subtracting the initial rotation
+    local relativeRot = vector3(
+        NormalizeAngle(camRot.x - initialRot.x), 
+        NormalizeAngle(camRot.y - initialRot.y), 
+        NormalizeAngle(camRot.z - initialRot.z)
+    )
     -- Calculate the angular difference for each axis (X, Y, Z)
-    local deltaX = math.abs(camRot.x - buttonRot.x)
-    local deltaY = math.abs(camRot.y - buttonRot.y)
-    local deltaZ = math.abs(camRot.z - buttonRot.z)
+    local deltaX = math.abs(relativeRot.x - buttonRot.x)
+    local deltaY = math.abs(relativeRot.y - buttonRot.y)
+    local deltaZ = math.abs(relativeRot.z - buttonRot.z)
 
     -- Check if all differences are within the threshold
     return deltaX <= buttonThreshold and deltaY <= buttonThreshold and deltaZ <= buttonThreshold
-end
-
--- Helper to clamp values
-function math.clamp(value, min, max)
-    return math.max(min, math.min(value, max))
 end
 
 function PlayKeypadSound(sType)
@@ -213,7 +211,7 @@ function PlayKeypadSound(sType)
 end
 
 function ClickButton(buttonId)
-
+    
     if buttonId ~= 12 then
         PlayKeypadSound(1)
     end
@@ -232,7 +230,7 @@ function ClickButton(buttonId)
             value = 'ENTER CODE'
         })
     elseif buttonId == 12 then -- Submit
-        if codeInput == code then
+        if codeInput == passcode then
             PlayKeypadSound(3)
             duiHandle:sendMessage({
                 action = "DISPLAY",
@@ -251,7 +249,6 @@ function ClickButton(buttonId)
 
 end
 
--- Highlight a button (optional)
 function HighlightButton(buttonId)
     if prevButtonID ~= buttonId then
         duiHandle:sendMessage({
@@ -262,22 +259,17 @@ function HighlightButton(buttonId)
     end
 end
 
--- Create the keypad and start the resource
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
     CreateDUI()
-    -- keypadHandle = CreateKeypad(1557.11, 2160.97, 79.15, 90.51)
-    keypadHandle = CreateKeypad(1564.29, 2160.96, 78.86, 0.0) -- vec4(1564.29, 2160.96, 78.86, 274.05)
-
-    code = tostring(math.random(11111,99999))
-    print('Code : ' .. code)
+    keypadHandle = CreateKeypad(1564.29, 2160.96, 78.86, 0.0)
+    passcode = tostring(math.random(11111, 99999))
+    print('Code: ' .. passcode)
 end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    -- Cleanup on resource stop
     RemoveReplaceTexture(txReplaceDict, txReplaceName)
     DeleteEntity(keypadHandle)
     ResetToDefaultCam()
 end)
-
