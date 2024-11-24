@@ -5,7 +5,7 @@ body {
     height: 100vh;
     margin: 0;
     background: transparent;
-    font-family: "Rubik", serif;
+    font-family: "Roboto Mono", serif;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -24,11 +24,16 @@ body {
     transform: translate(-50%, -50%);
     font-size: 1vh;
     color: rgb(38, 87, 222);
-
 }
 
 .keypad {
     display: none;
+}
+
+img {
+    width: 100vw; 
+    height: 100vh; 
+    object-fit: cover;
 }
 
 .content {
@@ -81,9 +86,7 @@ body {
     flex-direction: column; 
     justify-content: center;
     align-items: center;
-    /* background-color: #2321a147;  */
     color: white; 
-    font-family: Arial, sans-serif;
     cursor: pointer;
     user-select: none; 
     margin: 1vh;
@@ -97,23 +100,4 @@ body {
 .sublabel {
     font-size: 1.2vh; 
     color: #ccc; 
-}
-
-
-/* Testing */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(6, 1fr); 
-    width: 100%;
-    height: 100vh;
-}
-.grid div {
-    border: 2px solid rgba(255, 255, 255, 0.5); /* Optional grid lines */
-}
-
-img {
-    width: 100vw; /* Full width of the viewport */
-    height: 100vh; /* Full height of the viewport */
-    object-fit: cover; /* Ensure the image covers the screen without distortion */
 }

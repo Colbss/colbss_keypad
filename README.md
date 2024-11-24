@@ -8,5 +8,9 @@ This serves as a template / guide on how to create DUI's to be used to replace t
 I do not like how every FiveM resource has become a cash grab, feel free to use however you want, but please do not charge for any resource where this is used.
 
 ### Usage
-
 `/createkeypad` - Will create a demo keypad
+
+### Resmon
+Idle usage is 0.00ms, while keypad is in use:
+
+![Resmon](https://i.imgur.com/nnPPT1d.png)

@@ -3,17 +3,17 @@ game 'gta5'
 lua54 'yes'
 use_experimental_fxv2_oal 'yes'
 
-description 'Keypad Interact'
+description 'DUI Based Keypad'
+author 'Colbss'
 version '1.0.0'
 
-shared_scripts {
-    '@ox_lib/init.lua',
+dependencies {
+    'ox_lib',
 }
 
-client_scripts{
-    '@qbx_core/modules/lib.lua',
-    'client.lua'
-} 
+shared_script '@ox_lib/init.lua'
+
+client_script 'client.lua' 
 
 ui_page 'html/ui.html'
 

@@ -36,7 +36,7 @@ function CreateDUI()
         if duiHandle ~= nil and duiHandle.dictName ~= nil and duiHandle.txtName ~= nil then return true end
     end)    
     AddReplaceTexture(txReplaceDict, txReplaceName, duiHandle.dictName, duiHandle.txtName)
-    Wait(500)
+    Wait(500)   -- Sometimes webpage hasnt loaded, not generally an issue if the dui isnt created as soon as resource starts
     duiHandle:sendMessage({
         action = "KEYPAD",
         value = true
@@ -64,18 +64,9 @@ function CalculateInitialCameraRotation(keypadHeading)
     return vec3(0.0, 0.0, heading)
 end
 
-function NormalizeAngle(angle)
-    return ((angle + 180) % 360) - 180
-end
-
 function TransitionToKeypadCam(prop)
-    -- Get the keypad's coordinates
     local keypadCoords = GetEntityCoords(prop)
-
-    -- Offset the camera to be in front of the keypad
     local camOffset = GetOffsetFromEntityInWorldCoords(prop, 0.0, -0.25, 0.0)
-
-    -- Create a new camera
     keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(keypadCam, camOffset.x, camOffset.y, camOffset.z)
     local initialRot = CalculateInitialCameraRotation(GetEntityHeading(prop))
@@ -84,8 +75,8 @@ function TransitionToKeypadCam(prop)
     RenderScriptCams(true, true, 1000, true, true)
     
     FreezeEntityPosition(cache.ped, true)
-    TriggerEvent('zoom:updateBlock', true)
-    TriggerEvent('hud:client:ToggleHUD', false)
+    TriggerEvent('zoom:updateBlock', true)          -- <= Will be different per server, hide / disable what you want here
+    TriggerEvent('hud:client:ToggleHUD', false)     -- ..................................................................
 
     CreateThread(function()
         Wait(1000)
@@ -104,12 +95,12 @@ function TransitionToKeypadCam(prop)
             DisableAllControlActions(0)
 
             -- Get mouse input
-            xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
-            yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
+            xMouse = GetDisabledControlNormal(0, 1) * 8.0
+            yMouse = GetDisabledControlNormal(0, 2) * 8.0
             camRot = vector3(
-                math.clamp(camRot.x - yMagnitude, initialRot.x - 22.0, initialRot.x + 15.0), -- Clamp X-axis
-                camRot.y, -- Y-axis remains unchanged
-                math.clamp(camRot.z - xMagnitude, initialRot.z - 15.0, initialRot.z + 15.0)  -- Clamp Z-axis
+                math.clamp(camRot.x - yMouse, initialRot.x - 22.0, initialRot.x + 15.0),
+                camRot.y,
+                math.clamp(camRot.z - xMouse, initialRot.z - 15.0, initialRot.z + 15.0) 
             )
             
             -- Update camera rotation
@@ -146,12 +137,27 @@ function TransitionToKeypadCam(prop)
     end)
 end
 
+function NormalizeAngle(angle)
+    return ((angle + 180) % 360) - 180
+end
+
+function IsCameraLookingAtButton(camRot, buttonRot, initialRot)
+    local relativeRot = vector3(
+        NormalizeAngle(camRot.x - initialRot.x), 
+        NormalizeAngle(camRot.y - initialRot.y), 
+        NormalizeAngle(camRot.z - initialRot.z)
+    )
+    local deltaX = math.abs(relativeRot.x - buttonRot.x)
+    local deltaY = math.abs(relativeRot.y - buttonRot.y)
+    local deltaZ = math.abs(relativeRot.z - buttonRot.z)
+    return deltaX <= buttonThreshold and deltaY <= buttonThreshold and deltaZ <= buttonThreshold
+end
+
 function math.clamp(value, min, max)
     return math.max(min, math.min(value, max))
 end
 
 function ResetToDefaultCam()
-    -- Reset the camera to the player's default view
     if DoesCamExist(keypadCam) then
         RenderScriptCams(false, true, 1000, true, true)
         DestroyCam(keypadCam, false)
@@ -159,8 +165,8 @@ function ResetToDefaultCam()
     end
     HighlightButton(0)
     FreezeEntityPosition(cache.ped, false)
-    TriggerEvent('zoom:updateBlock', false)
-    TriggerEvent('hud:client:ToggleHUD', true)
+    TriggerEvent('zoom:updateBlock', false)     -- <= Will be different per server, show / enable what you want here
+    TriggerEvent('hud:client:ToggleHUD', true)  -- ..................................................................
     SendNUIMessage({
         action = 'MOUSE',
         value = false
@@ -172,22 +178,6 @@ function ResetToDefaultCam()
             value = 'ENTER CODE'
         })
     end
-end
-
-function IsCameraLookingAtButton(camRot, buttonRot, initialRot)
-    -- Calculate the relative rotation by subtracting the initial rotation
-    local relativeRot = vector3(
-        NormalizeAngle(camRot.x - initialRot.x), 
-        NormalizeAngle(camRot.y - initialRot.y), 
-        NormalizeAngle(camRot.z - initialRot.z)
-    )
-    -- Calculate the angular difference for each axis (X, Y, Z)
-    local deltaX = math.abs(relativeRot.x - buttonRot.x)
-    local deltaY = math.abs(relativeRot.y - buttonRot.y)
-    local deltaZ = math.abs(relativeRot.z - buttonRot.z)
-
-    -- Check if all differences are within the threshold
-    return deltaX <= buttonThreshold and deltaY <= buttonThreshold and deltaZ <= buttonThreshold
 end
 
 function PlayKeypadSound(sType)
@@ -206,7 +196,7 @@ function PlayKeypadSound(sType)
         }
 
     }
-    sid = GetSoundId()
+    local sid = GetSoundId()
     PlaySoundFrontend(sid, sounds[sType].name, sounds[sType].ref, 1)
     ReleaseSoundId(sid)
 end
