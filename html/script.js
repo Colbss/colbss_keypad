@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Send input to the client (do not expose the code on the frontend)
             $.post(`https://colbss_keypad/button`, JSON.stringify({ value: label }));
 
             // Reset the click flag after a short delay

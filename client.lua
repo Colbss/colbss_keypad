@@ -106,7 +106,6 @@ function TransitionToKeypadCam(prop)
             -- Get mouse input
             xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
             yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
-            -- camRot = vector3(camRot.x - yMagnitude, camRot.y, camRot.z - xMagnitude)
             camRot = vector3(
                 math.clamp(camRot.x - yMagnitude, initialRot.x - 22.0, initialRot.x + 15.0), -- Clamp X-axis
                 camRot.y, -- Y-axis remains unchanged
@@ -167,10 +166,12 @@ function ResetToDefaultCam()
         value = false
     })
     codeInput = ''
-    duiHandle:sendMessage({
-        action = "DISPLAY",
-        value = 'ENTER CODE'
-    })
+    if duiHandle then
+        duiHandle:sendMessage({
+            action = "DISPLAY",
+            value = 'ENTER CODE'
+        })
+    end
 end
 
 function IsCameraLookingAtButton(camRot, buttonRot, initialRot)
@@ -212,9 +213,7 @@ end
 
 function ClickButton(buttonId)
     
-    if buttonId ~= 12 then
-        PlayKeypadSound(1)
-    end
+    PlayKeypadSound(1)
 
     if ((buttonId > 0 and buttonId < 10) or buttonId == 11) and #codeInput < 5 then
         if buttonId == 11 then buttonId = 0 end
@@ -250,7 +249,7 @@ function ClickButton(buttonId)
 end
 
 function HighlightButton(buttonId)
-    if prevButtonID ~= buttonId then
+    if prevButtonID ~= buttonId and duiHandle then
         duiHandle:sendMessage({
             action = "BUTTON",
             value = buttonId
@@ -259,13 +258,14 @@ function HighlightButton(buttonId)
     end
 end
 
-AddEventHandler('onResourceStart', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
+RegisterCommand('createkeypad', function(source, args)
+
     CreateDUI()
-    keypadHandle = CreateKeypad(1564.29, 2160.96, 78.86, 0.0)
+    keypadHandle = CreateKeypad(212.12, 1168.74, 227.5, 283.88)
     passcode = tostring(math.random(11111, 99999))
     print('Code: ' .. passcode)
-end)
+	
+end, false)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
