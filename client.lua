@@ -58,10 +58,8 @@ function CreateKeypad(x, y, z, w)
     return prop
 end
 
-function CalculateInitialCameraRotation(fromCoords, toCoords)
-    local dir = toCoords - fromCoords
-    local yaw = math.atan2(-dir.x, dir.y)
-    local heading = yaw * (180.0 / math.pi)
+function CalculateInitialCameraRotation(keypadHeading)
+    heading = (keypadHeading + 360.0) % 360.0
     return vec3(0.0, 0.0, heading)
 end
 
@@ -75,7 +73,8 @@ function TransitionToKeypadCam(prop)
     -- Create a new camera
     keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(keypadCam, camOffset.x, camOffset.y, camOffset.z)
-    local initialRot = CalculateInitialCameraRotation(camOffset, keypadCoords)
+    local initialRot = CalculateInitialCameraRotation(GetEntityHeading(prop))
+    print('Set Cam Coords : ' .. tostring(initialRot))
     SetCamRot(keypadCam, initialRot.x, initialRot.y, initialRot.z, 2)
     SetCamActive(keypadCam, true)
     RenderScriptCams(true, true, 1000, true, true)
@@ -95,6 +94,11 @@ function TransitionToKeypadCam(prop)
     local camRot = initialRot
     local btnLookingAt = -1
 
+    local xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
+    print('Start X : ' .. tostring(xMagnitude))
+    local yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
+    print('Start Y : ' .. tostring(yMagnitude))
+
     -- Track the camera's rotation and determine which button is being looked at
     CreateThread(function()
         while DoesCamExist(keypadCam) and IsCamActive(keypadCam) do
@@ -102,7 +106,10 @@ function TransitionToKeypadCam(prop)
             DisableAllControlActions(0)
             local xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
             local yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
-            camRot = vector3(math.clamp(camRot.x - yMagnitude, -23.0, 15.0), camRot.y, math.clamp(camRot.z - xMagnitude, 75.0, 105.0))
+            -- camRot = vector3(math.clamp(camRot.x - yMagnitude, -23.0, 15.0), camRot.y, math.clamp(camRot.z - xMagnitude, 75.0, 105.0))
+            camRot = vector3(camRot.x - yMagnitude, camRot.y, camRot.z - xMagnitude)
+            print('Update Cam Rot : ' .. tostring(camRot))
+            
             SetCamRot(keypadCam, camRot.x, camRot.y, camRot.z, 2)
 
             -- Check which button the camera is looking at
@@ -120,7 +127,9 @@ function TransitionToKeypadCam(prop)
 
             if IsDisabledControlJustPressed(0, 24)  then -- ESC or Back
                 -- exports.qbx_core:Notify('Click Button ' .. btnLookingAt, 'success')
-                ClickButton(btnLookingAt)
+                if btnLookingAt > 0 then 
+                    ClickButton(btnLookingAt)
+                end
             end
 
             if IsDisabledControlJustPressed(0, 200) or IsDisabledControlJustPressed(0, 177) then -- ESC or Back
@@ -257,7 +266,8 @@ end
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
     CreateDUI()
-    keypadHandle = CreateKeypad(1557.11, 2160.97, 79.15, 90.51)
+    -- keypadHandle = CreateKeypad(1557.11, 2160.97, 79.15, 90.51)
+    keypadHandle = CreateKeypad(1564.29, 2160.96, 78.86, 0.0) -- vec4(1564.29, 2160.96, 78.86, 274.05)
 
     code = tostring(math.random(11111,99999))
     print('Code : ' .. code)
