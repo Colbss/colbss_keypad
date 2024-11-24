@@ -4,26 +4,25 @@ const display = document.querySelector('.display');
 window.addEventListener('message', function (event) {
     let e = event.data;
     switch (e.action) {
-        case "STATE":
+        case "KEYPAD":
             if (!e.value) {
-                $('body').css('display', 'none');
+                $('.keypad').css('display', 'none');
             }else {
-                $('body').css('display', 'flex');
+                $('.keypad').css('display', 'flex');
             }
             break;
-        case "INPUT":
-                if (!e.value) {
-                    display.textContent = 'INVALID'
-                } else {
-                    display.textContent = 'SUCCESS'
-                }
-                break;
         case "MOUSE":
             if (!e.value) {
-                $('.mouse-container').css('display', 'none');
-            } else {
-                $('.mouse-container').css('display', 'flex');
+                $('.mouse').css('display', 'none');
+            }else {
+                $('.mouse').css('display', 'flex');
             }
+            break;
+        case "DISPLAY":
+            display.textContent = e.value
+            break;
+        case "BUTTON":
+            HighlightButton(e.value)
             break;
         default: break;
     }
@@ -67,16 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+let prevBtnID = -1
+function HighlightButton(ID) {
 
-// Get the icon element
-const icon = document.getElementById('mouse-icon');
+    if (prevBtnID > 0 ) { // Ignore first time
+        const prevBtn = document.getElementById('btn' + prevBtnID)
+        prevBtn.style.backgroundColor = 'transparent'; 
+    }
+    if (ID > 0 ) {
+        const newBtn = document.getElementById('btn' + ID)
+        newBtn.style.backgroundColor = '#2321a147'; 
+        prevBtnID = ID
+    }
+}
 
-// Update the icon's position on mousemove
-document.addEventListener('mousemove', (event) => {
-    const mouseX = event.clientX; // Mouse X position
-    const mouseY = event.clientY; // Mouse Y position
-
-    // Update icon position
-    icon.style.left = `${mouseX}px`;
-    icon.style.top = `${mouseY}px`;
-});

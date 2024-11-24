@@ -17,70 +17,73 @@
     <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
 <body>
-    <img src="prop_ld_keypad.png">
-    <div class="content">
-        <div class="display">
-            
-        </div>
-        <div class="input">
-            <div class="row">
-                <div class="btn">
-                    <div class="sublabel"></div>
-                    <div class="label">1</div>
-                </div>
-                <div class="btn">
-                    <div class="sublabel">ABC</div>
-                    <div class="label">2</div>
-                </div>
-                <div class="btn">
-                    <div class="sublabel">DEF</div>
-                    <div class="label">3</div>
-                </div>
+    <div class="keypad">
+        <img src="prop_ld_keypad.png">
+        <div class="content">
+            <div class="display">
+                ENTER CODE
             </div>
-            <div class="row">
-                <div class="btn">
-                    <div class="sublabel">GHI</div>
-                    <div class="label">4</div>
+            <div class="input">
+                <div class="row">
+                    <div id='btn1' class="btn">
+                        <div class="sublabel"></div>
+                        <div class="label">1</div>
+                    </div>
+                    <div id='btn2' class="btn">
+                        <div class="sublabel">ABC</div>
+                        <div class="label">2</div>
+                    </div>
+                    <div id='btn3' class="btn">
+                        <div class="sublabel">DEF</div>
+                        <div class="label">3</div>
+                    </div>
                 </div>
-                <div class="btn">
-                    <div class="sublabel">JKL</div>
-                    <div class="label">5</div>
+                <div class="row">
+                    <div id='btn4' class="btn">
+                        <div class="sublabel">GHI</div>
+                        <div class="label">4</div>
+                    </div>
+                    <div id='btn5' class="btn">
+                        <div class="sublabel">JKL</div>
+                        <div class="label">5</div>
+                    </div>
+                    <div id='btn6' class="btn">
+                        <div class="sublabel">MNO</div>
+                        <div class="label">6</div>
+                    </div>
                 </div>
-                <div class="btn">
-                    <div class="sublabel">MNO</div>
-                    <div class="label">6</div>
+                <div class="row">
+                    <div id='btn7' class="btn">
+                        <div class="sublabel">PQRS</div>
+                        <div class="label">7</div>
+                    </div>
+                    <div id='btn8' class="btn">
+                        <div class="sublabel">TUV</div>
+                        <div class="label">8</div>
+                    </div>
+                    <div id='btn9' class="btn">
+                        <div class="sublabel">WXYZ</div>
+                        <div class="label">9</div>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="btn">
-                    <div class="sublabel">PQRS</div>
-                    <div class="label">7</div>
-                </div>
-                <div class="btn">
-                    <div class="sublabel">TUV</div>
-                    <div class="label">8</div>
-                </div>
-                <div class="btn">
-                    <div class="sublabel">WXYZ</div>
-                    <div class="label">9</div>
-                </div>
-            </div>
-            <div class="row">
-                <div id="cancel" class="btn">
-                    <div class="sublabel"></div>
-                    <div class="label">C</div>
-                </div>
-                <div class="btn">
-                    <div class="sublabel"></div>
-                    <div class="label">0</div>
-                </div>
-                <div id="submit" class="btn">
-                    <div class="sublabel"></div>
-                    <div class="label">#</div>
+                <div class="row">
+                    <div id='btn10' id="cancel" class="btn">
+                        <div class="sublabel"></div>
+                        <div class="label">C</div>
+                    </div>
+                    <div id='btn11' class="btn">
+                        <div class="sublabel"></div>
+                        <div class="label">0</div>
+                    </div>
+                    <div id='btn12' id="submit" class="btn">
+                        <div class="sublabel"></div>
+                        <div class="label">#</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
 
     <!-- DEBUG GRID -->
     <!-- <div class="grid">
@@ -92,8 +95,8 @@
         <div></div><div></div><div></div><div></div><div></div><div></div>
     </div> -->
 
-    <div class="mouse-container">
-        <i class="fa-solid fa-hand-pointer" id="mouse-icon"></i>
+    <div class="mouse">
+        <i class="fa-solid fa-xmark"></i>
     </div>
 
     <script src="script.js"></script>

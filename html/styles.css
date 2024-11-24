@@ -1,10 +1,10 @@
 body {
-    display: none; /* none */
+    display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    /* background: red; */
+    background: transparent;
     font-family: "Rubik", serif;
     font-optical-sizing: auto;
     font-weight: 400;
@@ -13,18 +13,23 @@ body {
     overflow: hidden;
 }
 
-.mouse-container {
+.mouse {
     display: none;
 }
 
-.fa-hand-pointer {
+.fa-xmark {
     position: absolute;
-    font-size: 5vh; /* Icon size */
-    color: rgb(173, 59, 59); /* Icon color */
-    pointer-events: none; /* Allows clicks to pass through */
-    transform: translate(-50%, -50%); /* Centers icon on mouse */
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+    font-size: 1vh;
+    color: rgb(38, 87, 222);
+
 }
 
+.keypad {
+    display: none;
+}
 
 .content {
     position: absolute;
@@ -36,14 +41,19 @@ body {
 
 .display {
     position: absolute;
-    top: 22vh;
+    height: 18vh;
+    width: 63vw;
+    top: 18vh;
     left: 50vw;
     transform: translateX(-50%);
     font-family: 'Seven Segment', sans-serif;
     font-weight: 400;
     font-size: 8vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     color: black;
-
 }
 
 .input {
@@ -57,7 +67,6 @@ body {
     flex-direction: column;
     justify-content: space-between;
     align-items: center; 
-    /* border: 2px solid rgba(255, 0, 0, 0.3);  */
 }
 
 .row {
@@ -72,7 +81,7 @@ body {
     flex-direction: column; 
     justify-content: center;
     align-items: center;
-    background-color: #2321a147; 
+    /* background-color: #2321a147;  */
     color: white; 
     font-family: Arial, sans-serif;
     cursor: pointer;
@@ -91,6 +100,7 @@ body {
 }
 
 
+/* Testing */
 .grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
