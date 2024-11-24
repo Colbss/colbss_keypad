@@ -1,25 +1,24 @@
 local txReplaceDict, txReplaceName = 'ch_prop_casino_keypads', 'prop_ld_keypad'
 local propHash = `ch_prop_casino_keypad_01`
 local keypadHandle = nil
-local keypadCam = nil -- To hold the camera handle
+local keypadCam = nil
 local duiHandle = nil
 
-local code = 0
-
 local buttonOffsets = {
-    [1] = vec3(0,0,0),
-    [2] = vec3(0,0,0),
-    [3] = vec3(0,0,0),
-    [4] = vec3(0,0,0),
-    [5] = vec3(0,0,0),
-    [6] = vec3(0,0,0),
-    [7] = vec3(0,0,0),
-    [8] = vec3(0,0,0),
-    [9] = vec3(0,0,0),
-    [10] = vec3(0,0,0), -- Cancel
-    [11] = vec3(0,0,0), -- 0
-    [12] = vec3(0,0,0), -- #
+    [1] = vec3(-3.52, 0.0, 98.37),
+    [2] = vec3(-3.46, 0.0, 93.21),
+    [3] = vec3(-3.40, 0.0, 87.85),
+    [4] = vec3(-8.56, 0.0, 98.50),
+    [5] = vec3(-8.56, 0.0, 93.27),
+    [6] = vec3(-8.56, 0.0, 87.92),
+    [7] = vec3(-13.35, 0.0, 98.63),
+    [8] = vec3(-13.48, 0.0, 93.21),
+    [9] = vec3(-13.54, 0.0, 87.86),
+    [10] = vec3(-17.95, 0.0, 98.44), -- Cancel
+    [11] = vec3(-18.20, 0.0, 93.21), -- 0
+    [12] = vec3(-18.20, 0.0, 87.79)  -- #
 }
+local buttonThreshold = 2.5
 
 function CreateDUI()
     if duiHandle ~= nil then return end
@@ -56,82 +55,68 @@ function CreateKeypad(x, y, z, w)
     return prop
 end
 
-function TransitionToKeypadCam(prop, xMulti, yMulti)
+function CalculateInitialCameraRotation(fromCoords, toCoords)
+    local dir = toCoords - fromCoords
+    local yaw = math.atan2(-dir.x, dir.y)
+    local heading = yaw * (180.0 / math.pi)
+    return vec3(0.0, 0.0, heading)
+end
+
+function TransitionToKeypadCam(prop)
     -- Get the keypad's coordinates
-    local propCoords = GetEntityCoords(prop)
+    local keypadCoords = GetEntityCoords(prop)
 
     -- Offset the camera to be in front of the keypad
-    local camOffset = GetOffsetFromEntityInWorldCoords(prop, 0.0, -0.2, 0.0)
+    local camOffset = GetOffsetFromEntityInWorldCoords(prop, 0.0, -0.25, 0.0)
 
     -- Create a new camera
     keypadCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(keypadCam, camOffset.x, camOffset.y, camOffset.z)
-    PointCamAtCoord(keypadCam, propCoords.x, propCoords.y, propCoords.z)
+
+    -- Calculate initial rotation to face the keypad
+    local initialRot = CalculateInitialCameraRotation(camOffset, keypadCoords)
+    SetCamRot(keypadCam, initialRot.x, initialRot.y, initialRot.z, 2)
+
     SetCamActive(keypadCam, true)
     RenderScriptCams(true, true, 1000, true, true)
+    
+    local defaultFOV = GetCamFov(keypadCam)
 
-    -- Enable mouse input tracking
-    local duiObj = duiHandle.duiObject -- Assuming this is your current DUI handle
-    local duiWidth, duiHeight = 512, 1024 -- Your DUI resolution
-    local mouseEnabled = true
-
+    -- Freeze player controls   
     FreezeEntityPosition(cache.ped, true)
-    duiHandle:sendMessage({
-        action = "MOUSE",
-        value = true
-    })
     TriggerEvent('zoom:updateBlock', true)
     TriggerEvent('hud:client:ToggleHUD', false)
 
-    -- Track mouse movement and clicks
-    CreateThread(function()
-        while DoesCamExist(keypadCam) and IsCamActive(keypadCam) and mouseEnabled do
+    local camRot = initialRot
 
-            -- Disable all controls
-            DisableAllControlActions(0)
-
-            -- Enable necessary mouse controls
-            EnableControlAction(0, 1, true) -- Look left/right
-            EnableControlAction(0, 2, true) -- Look up/down
-            EnableControlAction(0, 239, true) -- Cursor X
-            EnableControlAction(0, 240, true) -- Cursor Y
-            EnableControlAction(0, 24, true) -- Left click
-            EnableControlAction(0, 25, true) -- Right click (if needed)
-            EnableControlAction(0, 237, true) -- Left click confirm
-
-            -- Capture normalized mouse position (0.0 to 1.0)
-            local mouseX = GetControlNormal(0, 239) -- Horizontal mouse movement
-            local mouseY = GetControlNormal(0, 240) -- Vertical mouse movement
-
-            -- Scale mouse position to DUI resolution with multiplier
-            local scaledX = math.floor(mouseX * duiWidth)
-            local scaledY = math.floor(mouseY * duiHeight)
-
-            -- Send the mouse movement to the DUI
-            SendDuiMouseMove(duiObj, scaledX, scaledY)
-
-            -- Handle mouse down
-            if IsDisabledControlPressed(0, 24) then -- Left mouse button
-                SendDuiMouseDown(duiObj, "left")
-            end
-
-            -- Handle mouse up
-            if IsDisabledControlPressed(0, 24) then -- Left mouse button
-                SendDuiMouseUp(duiObj, "left")
-            end
-
-            Wait(0)
-        end
-    end)
-
-    -- Listen for escape/back input to reset the camera
+    -- Track the camera's rotation and determine which button is being looked at
     CreateThread(function()
         while DoesCamExist(keypadCam) and IsCamActive(keypadCam) do
-            
-            if IsDisabledControlPressed(0, 177) or IsDisabledControlPressed(0, 200) then -- Back or Escape
-                mouseEnabled = false -- Stop tracking mouse input
-                ResetToDefaultCam()
+            -- Disable player controls but allow mouse input
+            DisableAllControlActions(0)
+
+            -- Get mouse input
+            local xMagnitude = GetDisabledControlNormal(0, 1) * 8.0 -- Mouse X
+            local yMagnitude = GetDisabledControlNormal(0, 2) * 8.0 -- Mouse Y
+            camRot = vector3(math.clamp(camRot.x - yMagnitude, -23.0, 15.0), camRot.y, math.clamp(camRot.z - xMagnitude, 75.0, 105.0)) ----
+            SetCamRot(keypadCam, camRot.x, camRot.y, camRot.z, 2)
+            print('Cam (' .. tostring(keypadCam) .. ') Rot : ' .. tostring(camRot))
+
+            -- Check which button the camera is looking at
+            local camDirection = RotationToDirection(camRot)
+            for buttonId, offset in pairs(buttonOffsets) do
+                local buttonCoords = keypadCoords + offset
+                if IsCameraLookingAtButton(keypadCoords, camDirection, buttonCoords) then
+                    HighlightButton(buttonId) -- Highlight or interact with the button
+                end
             end
+
+            -- Exit interaction on Escape
+            if IsDisabledControlJustPressed(0, 200) or IsDisabledControlJustPressed(0, 177) then -- ESC or Back
+                ResetToDefaultCam()
+                break
+            end
+
             Wait(0)
         end
     end)
@@ -145,80 +130,48 @@ function ResetToDefaultCam()
         DestroyCam(keypadCam, false)
         keypadCam = nil
     end
-    --SetNuiFocus(false, false)
+    -- Unfreeze player
     FreezeEntityPosition(cache.ped, false)
-    duiHandle:sendMessage({
-        action = "MOUSE",
-        value = false
-    })
-    TriggerEvent('zoom:updateBlock', false)
-    TriggerEvent('hud:client:ToggleHUD', true)
 end
 
-function PlayKeypadSound(sType)   -- Type 1 : Pan, Type 2: Camera Switch
-    local sounds = {
-        [1] = { -- Key press
-            name = "Press",
-            ref = "DLC_SECURITY_BUTTON_PRESS_SOUNDS"
-        },
-        [2] = { -- Error
-            name = "Hack_Fail",
-            ref = "DLC_sum20_Business_Battle_AC_Sounds"
-        },
-        [3] = { -- Success
-            name = "Keypad_Access",
-            ref = "DLC_Security_Data_Leak_2_Sounds"
-        }
-
-    }
-    sid = GetSoundId()
-    PlaySoundFrontend(sid, sounds[sType].name, sounds[sType].ref, 1)
-    ReleaseSoundId(sid)
+-- Converts rotation angles to a direction vector
+function RotationToDirection(rotation)
+    local radZ = math.rad(rotation.z)
+    local radX = math.rad(rotation.x)
+    local cosX = math.cos(radX)
+    return vec3(-math.sin(radZ) * cosX, math.cos(radZ) * cosX, math.sin(radX))
 end
 
-function CheckInput(input)
-    print('Input : ' .. input .. ' | Code : ' .. code)
-    if tonumber(input) == code then
-        PlayKeypadSound(3)
-        duiHandle:sendMessage({
-            action = "INPUT",
-            value = true
-        })
-    else
-        PlayKeypadSound(2)
-        duiHandle:sendMessage({
-            action = "INPUT",
-            value = false
-        })
-    end
-
+-- Check if the camera is looking at a button
+function IsCameraLookingAtButton(keypadCoords, camDirection, buttonCoords)
+    local toButton = buttonCoords - keypadCoords
+    toButton = toButton / #(toButton) -- Normalize vector
+    local dot = camDirection.x * toButton.x + camDirection.y * toButton.y + camDirection.z * toButton.z
+    return dot > 0.98 -- Adjust threshold as needed
 end
 
-RegisterNUICallback("button", function(data, cb)
-    PlayKeypadSound(1)
-end)
+-- Highlight a button (optional)
+function HighlightButton(buttonId)
+    print("Looking at button:", buttonId)
+    -- Add highlighting logic or button interaction here
+end
 
-RegisterNUICallback("submit", function(data, cb)
-    CheckInput(data.value)
-end)
-
+-- Create the keypad and start the resource
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-
-    code = math.random(11111,99999)
-    print('Code : ' .. code)
     CreateDUI()
-    keypadHandle = CreateKeypad(1557.11,2160.97,79.15,90.51) -- keypadHandle = CreateKeypad(1530.86,1831.26,105.87, -8.51)
-    -- 1557.11,2160.97,79.15,90.51
+    keypadHandle = CreateKeypad(1557.11, 2160.97, 79.15, 90.51)
 end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-
-    -- Remove the replacement when the script ends
+    -- Cleanup on resource stop
     RemoveReplaceTexture(txReplaceDict, txReplaceName)
     DeleteEntity(keypadHandle)
-
-    -- Ensure camera is reset
     ResetToDefaultCam()
 end)
+
+-- Helper to clamp values
+function math.clamp(value, min, max)
+    return math.max(min, math.min(value, max))
+end
